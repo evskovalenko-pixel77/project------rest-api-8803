@@ -1,6 +1,5 @@
-- As a user, I want to register an account so that I can securely manage my tasks
-- As a user, I want to log in with my credentials so that I can access my personal task list
-- As a user, I want to create a new task so that I can keep track of things I need to do
-- As a user, I want to view all my tasks so that I can see what needs to be done
-- As a user, I want to mark a task as completed so that I can track my progress
-- As a user, I want to delete a task so that I can remove items that are no longer relevant
+- As a user, I want to register an account so that I can manage my tasks.
+- As a user, I want to create tasks so that I can keep track of things I need to do.
+- As a user, I want to view my list of tasks so that I can see what's pending or completed.
+- As a user, I want to mark a task as completed so that I can track my progress.
+- As a user, I want to delete tasks so that I can remove tasks I no longer need.

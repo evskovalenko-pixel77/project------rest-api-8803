@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: Todo API
+  title: Todo List API
   version: 1.0.0
 paths:
   /register:
@@ -18,91 +18,13 @@ paths:
                 password:
                   type: string
       responses:
-        '200':
-          description: User registered
-  /login:
-    post:
-      summary: Login and get JWT token
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
-      responses:
-        '200':
-          description: JWT token
+        '201':
+          description: User created with token
   /tasks:
     get:
-      summary: List all tasks for authenticated user
+      summary: List tasks for authenticated user
       security:
-        - bearerAuth: []
+        - ApiTokenAuth: []
       responses:
         '200':
           description: List of tasks
-    post:
-      summary: Create a new task
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                description:
-                  type: string
-      responses:
-        '200':
-          description: Task created
-  /tasks/{task_id}:
-    put:
-      summary: Update a task
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: task_id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                completed:
-                  type: boolean
-      responses:
-        '200':
-          description: Task updated
-    delete:
-      summary: Delete a task
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: task_id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Task deleted
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT

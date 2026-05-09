@@ -1,18 +1,17 @@
 # PRD
 ## Description
-A REST API for managing a personal todo list with user authentication. Users can register, log in, create, read, update (mark as complete), and delete their own tasks. Built with Python FastAPI and SQLite. MVP focuses on core CRUD operations with authentication.
+A REST API for managing a personal Todo list. Users can register, create tasks, mark them as completed, and delete tasks. Built with Python FastAPI and SQLite for persistence. Minimal authentication via API tokens.
 ## Features
-- User registration and login with JWT-based authentication
-- Create a new task with title and optional description
-- List all tasks for the authenticated user
-- Update a task (mark as completed or modify details)
+- User registration and token-based authentication
+- Create a task with title and description
+- List all tasks for the authenticated user (with status)
+- Mark a task as completed
 - Delete a task
-- All endpoints return JSON responses
-- Passwords hashed for security
-- Error handling for invalid requests (e.g., duplicate username, unauthorized access)
+- Data persisted in SQLite database
+- Auto-generated Swagger UI documentation
 ## Success Criteria
-- Users can register and log in successfully
-- Authenticated users can create, view, update, and delete only their own tasks
-- Unauthenticated requests are rejected with 401 status
-- API responses follow consistent JSON structure
-- All core endpoints (register, login, CRUD) are implemented and work correctly
+- All endpoints return correct HTTP status codes (200, 201, 401, 404, etc.)
+- Users can only access and modify their own tasks
+- Data survives server restart (SQLite file)
+- Authentication token is required for task operations
+- API documentation is accessible at /docs
