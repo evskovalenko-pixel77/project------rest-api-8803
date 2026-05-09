@@ -1,4 +1,4 @@
-# Todo API
+# Todo App
 
 ## Quick Start
 

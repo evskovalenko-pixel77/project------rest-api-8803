@@ -1,17 +1,19 @@
 import sqlite3
-import asyncio
-import hashlib
-import secrets
-from fastapi import FastAPI, HTTPException, Depends, Header, status
+import os
+from datetime import datetime, timedelta
+from typing import Optional
+
+from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
+from passlib.context import CryptContext
+from jose import jwt
 
-app = FastAPI()
+SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-DATABASE = 'todo.db'
-
-class UserRegister(BaseModel):
-    email: str
-    password: str
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+DATABASE = "todo.db"
 
 def get_db():
     conn = sqlite3.connect(DATABASE)
@@ -19,63 +21,73 @@ def get_db():
     return conn
 
 def init_db():
-    conn = get_db()
-    conn.execute('''
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY,
-            email TEXT UNIQUE,
-            password_hash TEXT,
-            api_token TEXT
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL
         )
-    ''')
+    """)
+    conn.commit()
     conn.close()
 
-@app.on_event('startup')
-def startup():
+app = FastAPI(title="Auth Module")
+
+@app.on_event("startup")
+def on_startup():
     init_db()
 
-def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+class UserRegister(BaseModel):
+    email: str
+    password: str
 
-def generate_token() -> str:
-    return secrets.token_hex(32)
+class UserLogin(BaseModel):
+    email: str
+    password: str
 
-@app.post('/register', status_code=201)
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+@app.post("/register", status_code=status.HTTP_201_CREATED, response_model=Token)
 def register(user: UserRegister):
     conn = get_db()
     try:
-        cursor = conn.execute('SELECT id FROM users WHERE email = ?', (user.email,))
+        cursor = conn.execute("SELECT id FROM users WHERE email = ?", (user.email,))
         if cursor.fetchone():
-            raise HTTPException(status_code=400, detail='Email already registered')
-        pwd_hash = hash_password(user.password)
-        token = generate_token()
-        conn.execute('INSERT INTO users (email, password_hash, api_token) VALUES (?, ?, ?)',
-                     (user.email, pwd_hash, token))
+            raise HTTPException(status_code=400, detail="Email already registered")
+        hashed = pwd_context.hash(user.password)
+        cursor = conn.execute("INSERT INTO users (email, password_hash) VALUES (?, ?)", (user.email, hashed))
         conn.commit()
-        return {'email': user.email, 'token': token}
+        user_id = cursor.lastrowid
+        access_token = create_access_token(data={"sub": user.email, "user_id": user_id})
+        return Token(access_token=access_token, token_type="bearer")
     except sqlite3.IntegrityError:
-        raise HTTPException(status_code=400, detail='Email already registered')
+        conn.rollback()
+        raise HTTPException(status_code=400, detail="Email already registered")
     finally:
         conn.close()
 
-async def get_current_user(authorization: str = Header(None)):
-    if not authorization:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Not authenticated')
-    if not authorization.startswith('Bearer '):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid authentication scheme')
-    token = authorization[len('Bearer '):]
-    user = await asyncio.to_thread(_get_user_by_token, token)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid token')
-    return user
-
-def _get_user_by_token(token: str):
+@app.post("/login", response_model=Token)
+def login(user: UserLogin):
     conn = get_db()
     try:
-        cursor = conn.execute('SELECT id, email FROM users WHERE api_token = ?', (token,))
-        user = cursor.fetchone()
-        if user:
-            return user
-        return None
+        cursor = conn.execute("SELECT * FROM users WHERE email = ?", (user.email,))
+        row = cursor.fetchone()
+        if not row:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        user_dict = dict(row)
+        if not pwd_context.verify(user.password, user_dict["password_hash"]):
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        access_token = create_access_token(data={"sub": user.email, "user_id": user_dict["id"]})
+        return Token(access_token=access_token, token_type="bearer")
     finally:
         conn.close()

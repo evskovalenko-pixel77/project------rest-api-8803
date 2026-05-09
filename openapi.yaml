@@ -6,25 +6,34 @@ paths:
   /register:
     post:
       summary: Register a new user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
       responses:
         '201':
-          description: User created with token
+          description: User created
+  /login:
+    post:
+      summary: Login and get JWT token
+      responses:
+        '200':
+          description: JWT token
   /tasks:
     get:
-      summary: List tasks for authenticated user
-      security:
-        - ApiTokenAuth: []
+      summary: List user tasks
       responses:
         '200':
           description: List of tasks
+    post:
+      summary: Create a task
+      responses:
+        '201':
+          description: Task created
+  /tasks/{task_id}:
+    patch:
+      summary: Update task completion
+      responses:
+        '200':
+          description: Task updated
+    delete:
+      summary: Delete a task
+      responses:
+        '204':
+          description: Task deleted

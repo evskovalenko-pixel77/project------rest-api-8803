@@ -1,13 +1,14 @@
 CREATE TABLE users (
-  id INTEGER PRIMARY KEY,
-  email TEXT UNIQUE,
-  password_hash TEXT,
-  api_token TEXT
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL
 );
 CREATE TABLE tasks (
-  id INTEGER PRIMARY KEY,
-  title TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
   description TEXT,
+  due_date TEXT,
   completed BOOLEAN DEFAULT 0,
-  user_id INTEGER REFERENCES users(id)
+  user_id INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );

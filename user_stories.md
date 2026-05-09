@@ -1,5 +1,6 @@
-- As a user, I want to register an account so that I can manage my tasks.
-- As a user, I want to create tasks so that I can keep track of things I need to do.
-- As a user, I want to view my list of tasks so that I can see what's pending or completed.
-- As a user, I want to mark a task as completed so that I can track my progress.
-- As a user, I want to delete tasks so that I can remove tasks I no longer need.
+- As a user, I want to register with my email and password so that I can create a personal account
+- As a user, I want to log in to receive a token so that I can access protected features
+- As a user, I want to create a task with a title and optional details so that I can track what I need to do
+- As a user, I want to view all my tasks so that I can see my to-do list
+- As a user, I want to mark a task as completed so that I can track progress
+- As a user, I want to delete a task that is no longer relevant so that my list stays clean
